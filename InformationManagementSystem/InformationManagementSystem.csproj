@@ -21,12 +21,12 @@
     <ItemGroup>
       <Content Include="bin\Debug\net6.0\appsettings.Development.json" />
       <Content Include="bin\Debug\net6.0\appsettings.json" />
-      <Content Include="bin\Debug\net6.0\ContosoUniversity" />
-      <Content Include="bin\Debug\net6.0\ContosoUniversity.deps.json" />
-      <Content Include="bin\Debug\net6.0\ContosoUniversity.dll" />
-      <Content Include="bin\Debug\net6.0\ContosoUniversity.pdb" />
-      <Content Include="bin\Debug\net6.0\ContosoUniversity.runtimeconfig.json" />
-      <Content Include="bin\Debug\net6.0\ContosoUniversity.staticwebassets.runtime.json" />
+      <Content Include="bin\Debug\net6.0\InformationManagementSystem" />
+      <Content Include="bin\Debug\net6.0\InformationManagementSystem.deps.json" />
+      <Content Include="bin\Debug\net6.0\InformationManagementSystem.dll" />
+      <Content Include="bin\Debug\net6.0\InformationManagementSystem.pdb" />
+      <Content Include="bin\Debug\net6.0\InformationManagementSystem.runtimeconfig.json" />
+      <Content Include="bin\Debug\net6.0\InformationManagementSystem.staticwebassets.runtime.json" />
       <Content Include="bin\Debug\net6.0\cs\Microsoft.CodeAnalysis.CSharp.Features.resources.dll" />
       <Content Include="bin\Debug\net6.0\cs\Microsoft.CodeAnalysis.CSharp.resources.dll" />
       <Content Include="bin\Debug\net6.0\cs\Microsoft.CodeAnalysis.CSharp.Scripting.resources.dll" />
