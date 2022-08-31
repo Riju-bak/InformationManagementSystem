@@ -8,7 +8,7 @@
     }
   },
   "profiles": {
-    "ContosoUniversity": {
+    "InformationManagementSystem": {
       "commandName": "Project",
       "dotnetRunMessages": true,
       "launchBrowser": true,
