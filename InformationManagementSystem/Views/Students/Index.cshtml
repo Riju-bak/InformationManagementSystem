@@ -2,7 +2,7 @@
 @model PaginatedList<InformationManagementSystem.Models.Student>
 
 @{
-    ViewData["Title"] = "Index";
+    ViewData["Title"] = "Students";
     bool toggleBackToList = false;
     if (ViewData.ContainsKey("CurrentFilter") && ViewData["CurrentFilter"] != null)
     {
@@ -11,7 +11,7 @@
 }
 
 
-<h1>Index</h1>
+<h1>Students</h1>
 
 <p>
     <a asp-action="Create">Create New</a>
