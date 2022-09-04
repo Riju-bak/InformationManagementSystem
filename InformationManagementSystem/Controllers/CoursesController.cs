@@ -60,6 +60,7 @@ namespace InformationManagementSystem.Controllers
         {
             IOrderedQueryable<Department> departments = from d in _context.Departments orderby d.Name select d;
             //dataTextField: This will be shown in the drop-down list. Setting it to "Name" means the department's name will be shown. Set "DepartmentID", then the id of the department will be shown in the dropdown.
+            //dataValueField: This is actually what the drop-down list will set behind the scenes.
             ViewBag.Departments =
                 new SelectList(departments.AsNoTracking(), "DepartmentID", "Name", selectedDepartment);
         }
@@ -99,7 +100,7 @@ namespace InformationManagementSystem.Controllers
             {
                 return NotFound();
             }
-
+            PopulateDepartmentsDropDownList(course.DepartmentID);
             return View(course);
         }
 
@@ -108,13 +109,16 @@ namespace InformationManagementSystem.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("CourseID,Title,Credits")] Course course)
+        public async Task<IActionResult> Edit(int id, [Bind("CourseID,Title,Credits,DepartmentID")] Course course)
         {
             if (id != course.CourseID)
             {
                 return NotFound();
             }
 
+            var department = _context.Departments.FirstOrDefault(d => d.DepartmentID == course.DepartmentID);
+            course.Department = department;
+            ModelState.Remove("Department");   //Won't be required if partial update works.
             if (ModelState.IsValid)
             {
                 try
@@ -136,7 +140,7 @@ namespace InformationManagementSystem.Controllers
 
                 return RedirectToAction(nameof(Index));
             }
-
+            PopulateDepartmentsDropDownList(course.DepartmentID);
             return View(course);
         }
 
