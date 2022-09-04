@@ -38,6 +38,8 @@ namespace InformationManagementSystem.Controllers
 
             var course = await _context.Courses
                 .FirstOrDefaultAsync(m => m.CourseID == id);
+            //Load department explicitly or view won't know about it.
+            _context.Entry(course).Reference(c => c.Department).Load();
             if (course == null)
             {
                 return NotFound();
@@ -49,7 +51,17 @@ namespace InformationManagementSystem.Controllers
         // GET: Courses/Create
         public IActionResult Create()
         {
+            //DBInitalizer doesn't set the department FK field of a course, only the departmentID. Thus, it must be populated.
+            PopulateDepartmentsDropDownList();
             return View();
+        }
+
+        private void PopulateDepartmentsDropDownList(object selectedDepartment = null)
+        {
+            IOrderedQueryable<Department> departments = from d in _context.Departments orderby d.Name select d;
+            //dataTextField: This will be shown in the drop-down list. Setting it to "Name" means the department's name will be shown. Set "DepartmentID", then the id of the department will be shown in the dropdown.
+            ViewBag.Departments =
+                new SelectList(departments.AsNoTracking(), "DepartmentID", "Name", selectedDepartment);
         }
 
         // POST: Courses/Create
@@ -57,14 +69,20 @@ namespace InformationManagementSystem.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("CourseID,Title,Credits")] Course course)
+        public async Task<IActionResult> Create([Bind("CourseID,Title,Credits, DepartmentID")] Course course)
         {
-            if (ModelState.IsValid)
+            Department department = _context.Departments.FirstOrDefault(d => d.DepartmentID == course.DepartmentID);
+            course.Department = department;
+            //ModelState doens't get updated when course Department is set.
+            ModelState.Remove("Department"); //Remove to prevent ModelState check (Fine for now)
+            if (course.Department != null && ModelState.IsValid)
             {
-                _context.Add(course);
+                _context.Courses.Add(course);
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
             }
+
+            PopulateDepartmentsDropDownList(course.DepartmentID);
             return View(course);
         }
 
@@ -81,6 +99,7 @@ namespace InformationManagementSystem.Controllers
             {
                 return NotFound();
             }
+
             return View(course);
         }
 
@@ -114,8 +133,10 @@ namespace InformationManagementSystem.Controllers
                         throw;
                     }
                 }
+
                 return RedirectToAction(nameof(Index));
             }
+
             return View(course);
         }
 
@@ -129,6 +150,7 @@ namespace InformationManagementSystem.Controllers
 
             var course = await _context.Courses
                 .FirstOrDefaultAsync(m => m.CourseID == id);
+            _context.Entry(course).Reference(c => c.Department).Load();
             if (course == null)
             {
                 return NotFound();
@@ -146,19 +168,20 @@ namespace InformationManagementSystem.Controllers
             {
                 return Problem("Entity set 'SchoolContext.Courses'  is null.");
             }
+
             var course = await _context.Courses.FindAsync(id);
             if (course != null)
             {
                 _context.Courses.Remove(course);
             }
-            
+
             await _context.SaveChangesAsync();
             return RedirectToAction(nameof(Index));
         }
 
         private bool CourseExists(int id)
         {
-          return (_context.Courses?.Any(e => e.CourseID == id)).GetValueOrDefault();
+            return (_context.Courses?.Any(e => e.CourseID == id)).GetValueOrDefault();
         }
     }
 }
