@@ -55,9 +55,7 @@
             <td>
                 @foreach (var course in item.CourseAssignments)
                 {
-                    @course.Course.CourseID
-                    @course.Course.Title
-                    <br/>
+                    <p>@course.Course.CourseID   @course.Course.Title</p>
                 }
             </td>
             <td>
