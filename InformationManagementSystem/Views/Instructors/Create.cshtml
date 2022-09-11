@@ -1,41 +1,42 @@
-@using InformationManagementSystem.Models.SchoolViewModels
 @model InformationManagementSystem.Models.Instructor
 
 @{
-    ViewData["Title"] = "Edit";
+    ViewData["Title"] = "Create";
+    Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
-<h1>Edit</h1>
+<h1>Create</h1>
 
 <h4>Instructor</h4>
-<hr/>
+<hr />
 <div class="row">
     <div class="col-md-4">
-        <form asp-action="Edit">
+        <form asp-action="Create">
             <div asp-validation-summary="ModelOnly" class="text-danger"></div>
-            <input type="hidden" asp-for="ID"/>
             <div class="form-group">
                 <label asp-for="LastName" class="control-label"></label>
-                <input asp-for="LastName" class="form-control"/>
+                <input asp-for="LastName" class="form-control" />
                 <span asp-validation-for="LastName" class="text-danger"></span>
             </div>
             <div class="form-group">
                 <label asp-for="FirstMidName" class="control-label"></label>
-                <input asp-for="FirstMidName" class="form-control"/>
+                <input asp-for="FirstMidName" class="form-control" />
                 <span asp-validation-for="FirstMidName" class="text-danger"></span>
             </div>
             <div class="form-group">
                 <label asp-for="HireDate" class="control-label"></label>
-                <input asp-for="HireDate" class="form-control"/>
+                <input asp-for="HireDate" class="form-control" />
                 <span asp-validation-for="HireDate" class="text-danger"></span>
             </div>
             <div class="form-group">
                 <label class="control-label">Office Location</label>
-                @* <input asp-for="OfficeAssignment!.Location" class="form-control"/> *@
-                @* <span asp-validation-for="OfficeAssignment!.Location" class="text-danger"></span> *@
-                <input class="form-control" name="OfficeLocation" value="@Model.OfficeAssignment?.Location">
+                <input class="form-control" name="OfficeLocation">
             </div>
-            <br/>
+            @* <div class="form-group"> *@
+            @*     <label asp-for="OfficeAssignment.Location" class="control-label"></label> *@
+            @*     <input asp-for="OfficeAssignment.Location" class="form-control" /> *@
+            @*     <span asp-validation-for="OfficeAssignment.Location" class="text-danger" /> *@
+            @* </div> *@
             <div class="form-group">
                 <div class="col-md-offset-2 col-md-10">
                     <table>
@@ -43,7 +44,7 @@
                             @{
                                 int cnt = 0;
                                 List<InformationManagementSystem.Models.SchoolViewModels.AssignedCourseData> courses = ViewBag.Courses;
-            
+
                                 foreach (var course in courses)
                                 {
                                     if (cnt++ % 3 == 0)
@@ -56,15 +57,16 @@
                                                value="@course.CourseID"
                                                @(Html.Raw(course.Assigned ? "checked=\"checked\"" : "")) />
                                                @course.CourseID @:  @course.Title
-                                    @:</td>
+                                        @:</td>
                                 }
                                 @:</tr>
                             }
                     </table>
                 </div>
-            </div>
+            </div>            
+            <br/>
             <div class="form-group">
-                <input type="submit" value="Save" class="btn btn-primary"/>
+                <input type="submit" value="Create" class="btn btn-primary" />
             </div>
         </form>
     </div>
@@ -74,8 +76,6 @@
     <a asp-action="Index">Back to List</a>
 </div>
 
-@* This is used for "client side validation" (javascript). It does not let the user send the form if it is not valid (according to Model Validation). *@
-@* More details: https://stackoverflow.com/a/46010244 *@
 @section Scripts {
     @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
 }

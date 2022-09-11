@@ -57,48 +57,52 @@ public class InstructorsController : Controller
         }
 
         var instructor = await _context.Instructors.Include(i => i.OfficeAssignment)
+            .Include(i => i.CourseAssignments)
+            .ThenInclude(ca => ca.Course)
+            .AsNoTracking()
             .FirstOrDefaultAsync(m => m.ID == id);
         if (instructor == null)
         {
             return NotFound();
         }
 
+        PopulateAssignedCourseData(instructor);
         return View(instructor);
+    }
+
+    private void PopulateAssignedCourseData(Instructor instructor)
+    {
+        var allCourses = _context.Courses;
+        var instructorCourses = new HashSet<int>(instructor.CourseAssignments.Select(ca => ca.CourseID));
+        var viewModel = new List<AssignedCourseData>();
+        foreach (var course in allCourses)
+        {
+            viewModel.Add(new AssignedCourseData
+            {
+                CourseID = course.CourseID,
+                Title = course.Title,
+                Assigned = instructorCourses.Contains(course.CourseID)
+            });
+        }
+
+        ViewData["Courses"] = viewModel;
     }
 
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Edit(int id, string officeLocation)
+    public async Task<IActionResult> Edit(int id, string officeLocation, string[] selectedCourses)
     {
         var instructor = await _context.Instructors.Include(i => i.OfficeAssignment)
+            .Include(i => i.CourseAssignments)
+            .ThenInclude(ca => ca.Course)
             .FirstOrDefaultAsync(i => i.ID == id);
         if (instructor == null)
         {
             return NotFound();
         }
 
-        if (String.IsNullOrWhiteSpace(officeLocation))
-        {
-            //If the office location is empty the OfficeAssignment object associated with the instructor must be set to null
-            instructor.OfficeAssignment = null;
-        }
-        else if (instructor.OfficeAssignment == null)
-        {
-            //If OfficeAssignment == null
-            //Create a new OfficeAssignment
-            //Assign that to the Instructor.
-            var officeAssignment = new OfficeAssignment();
-            officeAssignment.Instructor = instructor;
-            officeAssignment.InstructorID = instructor.ID;
-            officeAssignment.Location = officeLocation;
-            _context.OfficeAssignments.Add(officeAssignment);
-            instructor.OfficeAssignment = officeAssignment;
-        }
-        else
-        {
-            //Just update the location for the instructor's existing OfficeAssignment
-            instructor.OfficeAssignment.Location = officeLocation;
-        }
+        UpdateInstructorOffice(officeLocation, instructor);
+        UpdateInstructorCourse(selectedCourses, instructor);
 
         try
         {
@@ -114,6 +118,65 @@ public class InstructorsController : Controller
         return RedirectToAction("Index");
     }
 
+    private void UpdateInstructorCourse(string[] selectedCourses, Instructor instructor)
+    {
+        if (selectedCourses == null || selectedCourses.Length == 0)
+        {
+            instructor.CourseAssignments = new List<CourseAssignment>();
+        }
+
+        var instructorCourses = new HashSet<int>(instructor.CourseAssignments.Select(ca => ca.CourseID));
+        var selectedCoursesHS = new HashSet<string>(selectedCourses);
+        foreach (var course in _context.Courses)
+        {
+            if (selectedCoursesHS.Contains(course.CourseID.ToString()))
+            {
+                if (!instructorCourses.Contains(course.CourseID))
+                {
+                    instructor.CourseAssignments.Add(new CourseAssignment{Course = course, CourseID = course.CourseID, Instructor = instructor, InstructorID = instructor.ID});
+                }
+            }
+            else
+            {
+                if (instructorCourses.Contains(course.CourseID))
+                {
+                    CourseAssignment coursesToRemove = instructor.CourseAssignments.FirstOrDefault(i => i.CourseID == course.CourseID);
+                    _context.Remove(coursesToRemove);
+                }
+            }
+        }
+        
+    }
+
+    private void UpdateInstructorOffice(string officeLocation, Instructor instructor)
+    {
+        if (String.IsNullOrWhiteSpace(officeLocation))
+        {
+            //If the office location is empty the OfficeAssignment object associated with the instructor must be set to null
+            instructor.OfficeAssignment = null;
+        }
+        else if (instructor.OfficeAssignment == null)
+        {
+            //If OfficeAssignment == null
+            //Create a new OfficeAssignment
+            //Assign that to the Instructor.
+            var officeAssignment = new OfficeAssignment
+            {
+                Instructor = instructor,
+                InstructorID = instructor.ID,
+                Location = officeLocation
+            };
+            _context.OfficeAssignments.Add(officeAssignment);
+            instructor.OfficeAssignment = officeAssignment;
+        }
+        else
+        {
+            //Just update the location for the instructor's existing OfficeAssignment
+            instructor.OfficeAssignment.Location = officeLocation;
+        }
+    }
+
+    //THE IMPLEMENTATION BELOW IS COMMENTED SINCE AT HIS SOME PROBLEMS
     // [HttpPost, ActionName("Edit")]
     // public async Task<IActionResult> EditPost(int? id)
     // {
@@ -204,5 +267,43 @@ public class InstructorsController : Controller
         }
 
         return RedirectToAction(nameof(Index));
+    }
+
+    public IActionResult Create()
+    {
+        var instructor = new Instructor();
+        instructor.CourseAssignments = new List<CourseAssignment>();
+        PopulateAssignedCourseData(instructor);
+        return View();
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> Create([Bind("FirstMidName", "LastName", "HireDate", "OfficeAssignment")] Instructor instructor, string? officeLocation, string[] selectedCourses)
+    {
+        if (selectedCourses != null || selectedCourses.Length > 0)
+        {
+            instructor.CourseAssignments = new List<CourseAssignment>();
+            foreach (string courseStringID in selectedCourses)
+            {
+                var course = await _context.Courses.FirstOrDefaultAsync(c => c.CourseID==int.Parse(courseStringID));
+                //TODO: Figure out: If instructor is not created yet, how can it have an ID??                
+                instructor.CourseAssignments.Add(new CourseAssignment { Course = course, Instructor = instructor, CourseID = course.CourseID, InstructorID = instructor.ID});
+            }
+        }
+
+        if (!String.IsNullOrWhiteSpace(officeLocation))
+        {
+            instructor.OfficeAssignment = new OfficeAssignment
+                { Instructor = instructor, InstructorID = instructor.ID, Location = officeLocation };
+        } 
+        if (ModelState.IsValid)
+        {
+            _context.Add(instructor);
+            await _context.SaveChangesAsync();
+            return RedirectToAction(nameof(Index));
+        }
+        PopulateAssignedCourseData(instructor);
+        return View(instructor);
     }
 }
