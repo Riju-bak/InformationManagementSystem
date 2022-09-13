@@ -90,7 +90,7 @@ public class InstructorsController : Controller
 
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Edit(int id, string officeLocation, string[] selectedCourses)
+    public async Task<IActionResult> Edit(int id, string lastName, string firstMidName, DateTime hireDate, string officeLocation, string[] selectedCourses)
     {
         var instructor = await _context.Instructors.Include(i => i.OfficeAssignment)
             .Include(i => i.CourseAssignments)
@@ -100,7 +100,9 @@ public class InstructorsController : Controller
         {
             return NotFound();
         }
-
+        instructor.LastName = lastName;
+        instructor.FirstMidName = firstMidName;
+        instructor.HireDate = hireDate;
         UpdateInstructorOffice(officeLocation, instructor);
         UpdateInstructorCourse(selectedCourses, instructor);
 
